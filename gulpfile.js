@@ -7,6 +7,7 @@ const uglify = require("gulp-uglify-es").default;
 const autoprefixer = require("gulp-autoprefixer");
 const imagemin = require("gulp-imagemin");
 const del = require("del");
+const pug = require("gulp-pug");
 
 function browsersync() {
   browserSync.init({
@@ -61,6 +62,12 @@ function styles() {
     .pipe(browserSync.stream());
 }
 
+function pugWatch() {
+  return src("app/pages/*.pug")
+    .pipe(pug({pretty: true}))
+    .pipe(dest("app"));
+}
+
 function build() {
   return src(
     [
@@ -78,7 +85,8 @@ function build() {
 function watching() {
   watch(["app/scss/**/*.scss"], styles);
   watch(["app/js/**/*.js", "!app/js/main.min.js"], scripts);
-  watch(["app/*.html"]).on("change", browserSync.reload);
+  watch(["app/pages/**/*.pug"], pugWatch).on("change", browserSync.reload);
+  // watch(["app/*.html"]).on("change", browserSync.reload);
 }
 
 function deploy() {
@@ -95,7 +103,8 @@ exports.browsersync = browsersync;
 exports.scripts = scripts;
 exports.images = images;
 exports.cleanDist = cleanDist;
+exports.pugWatch = pugWatch;
 
 exports.deploy = deploy;
 exports.build = series(cleanDist, images, build);
-exports.default = parallel(styles, scripts, browsersync, watching);
+exports.default = parallel(styles, scripts, browsersync, watching, pugWatch);
